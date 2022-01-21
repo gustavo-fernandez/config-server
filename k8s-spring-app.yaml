@@ -1,0 +1,63 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: config-server
+  labels:
+    app: config-server
+    version: "1.0.0"
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: config-server
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-server
+  labels:
+    app: config-server
+    version: "1.0.0"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: config-server
+  template:
+    metadata:
+      labels:
+        app: config-server
+        version: "1.0.0"
+    spec:
+      containers:
+        - name: config-server
+          image: "acrspring01.azurecr.io/config-server:1.0.0"
+          imagePullPolicy: Always
+          envFrom:
+            []
+          env:
+            - name: "SERVER_PORT"
+              value: "8080"
+            - name: "SPRING_APPLICATION_NAME"
+              value: "config-server"
+            - name: "SPRING_PROFILES_ACTIVE"
+              value: "dev"
+            - name: "spring.main.banner-mode"
+              value: "off"
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: tz-config
+              mountPath: /etc/localtime
+              readOnly: true
+          args: [ "" ]
+          resources:
+            {}
+      volumes:
+        - name: tz-config
+          hostPath:
+            path: /usr/share/zoneinfo/America/Lima
